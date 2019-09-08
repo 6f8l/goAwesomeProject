@@ -2,27 +2,28 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
+
+	"gopkg.in/ini.v1"
 )
 
+type ConfigList struct {
+	Port      int
+	DbName    string
+	SQLDriver string
+}
+
+var Config ConfigList
+
+func init() {
+	cfg, _ := ini.Load("config.ini")
+	Config = ConfigList{
+		Port:      cfg.Section("web").Key("port").MustInt(),
+		DbName:    cfg.Section("db").Key("name").MustString("example.sql"),
+		SQLDriver: cfg.Section("db").Key("driver").String(),
+	}
+}
 func main() {
-	base, _ := url.Parse("http://example.com")
-	reference, _ := url.Parse("/test?a=1&b=2")
-	endpoint := base.ResolveReference(reference).String()
-	fmt.Println(endpoint)
-
-	req, _ := http.NewRequest("GET", endpoint, nil)
-	req.Header.Add("If-None-Match", `W/"wyzzy"`)
-	q := req.URL.Query()
-	q.Add("c", "3&%")
-	fmt.Println(q)
-	fmt.Println(q.Encode())
-	req.URL.RawQuery = q.Encode()
-
-	var client *http.Client = &http.Client{}
-	resp, _ := client.Do(req)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	fmt.Printf("%T, %v\n", Config.Port, Config.Port)
+	fmt.Printf("%T, %v\n", Config.DbName, Config.DbName)
+	fmt.Printf("%T, %v\n", Config.SQLDriver, Config.SQLDriver)
 }
